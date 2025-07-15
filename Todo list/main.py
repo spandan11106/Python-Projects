@@ -1,105 +1,102 @@
+def read_file():
+    try:
+        with open('task.txt', 'r') as txt:
+            return txt.readlines()
+    except FileNotFoundError:
+        return []
+
+def write_file(tasks):
+    with open('task.txt', 'w') as file:
+        file.writelines(tasks)
+
+
 prompt = "Command (help - for cmd info) : "
 
 while True:
     user_action = input(prompt).strip().lower()
 
     if user_action.startswith("add"):
-        task = user_action[4 : ]
+        task = user_action[4:]
         task += '\n'
-
-        try:
-            with open('task.txt', 'r') as file:
-                tasks = file.readlines()
-
-        except FileNotFoundError:
-            tasks = []
+        tasks = read_file()
         tasks.append(task)
-        with open('task.txt', 'w') as file:
-            file.writelines(tasks)
-
+        write_file(tasks)
         prompt = "Command: "
 
     elif 'show' in user_action or 'display' in user_action:
-        try:
-            with open('task.txt', 'r') as file:
-                tasks = file.readlines()
+        tasks = read_file()
 
-            if not tasks:
-                print("No tasks available.")
-            else:
-                for index, item in enumerate(tasks):
-                    item = item.capitalize().strip()
-                    print(f"{index + 1}. {item}")
-
-        except FileNotFoundError:
-            print("No tasks file found.")
-
-        prompt = "Command: "
-
-    elif 'edit' in user_action:
-        try:
-            with open('task.txt', 'r') as file:
-                tasks = file.readlines()
-
-            num = int(input("Which task do you want to edit: "))
-            tasks[num - 1] = input("Enter edited task: ") + "\n"
-
-            with open('task.txt', 'w') as file:
-                file.writelines(tasks)
-
-        except (IndexError, ValueError):
-            print("Invalid task number.")
-
-        except FileNotFoundError:
-            print("Task file not found.")
-
-        prompt = "Command: "
-
-    elif 'complete' in user_action:
-        try:
-            with open('task.txt', 'r') as file:
-                tasks = file.readlines()
-
-            if not tasks:
-                print("No tasks to complete.")
-                continue
-
+        if not tasks:
+            print("No tasks available.")
+        else:
             for index, item in enumerate(tasks):
                 item = item.capitalize().strip()
                 print(f"{index + 1}. {item}")
 
-            num = int(input("Which task did you complete: "))
-            tasks.pop(num - 1)
-            print("Task marked as done.")
+        prompt = "Command: "
 
-            with open('task.txt', 'w') as file:
-                file.writelines(tasks)
+    elif user_action.startswith('edit'):
+        try:
+            parts = user_action.split()
+            if len(parts) == 2 and parts[1].isdigit():
+                task_num = int(parts[1])
+                tasks = read_file()
 
-        except (IndexError, ValueError):
-            print("Invalid task number.")
+                if 1 <= task_num <= len(tasks):
+                    print(f"Current task {task_num}: {tasks[task_num - 1].strip()}")
+                    new_task = input("Enter edited task: ").strip()
+                    tasks[task_num - 1] = new_task + '\n'
+                    write_file(tasks)
+                    print(f"Task {task_num} updated.")
+                else:
+                    print("Invalid task number.")
+            else:
+                print("Usage: edit <task number>")
 
-        except FileNotFoundError:
-            print("Task file not found.")
+        except Exception as e:
+            print(f"Error editing task: {e}")
+
+        prompt = "Command: "
+
+    elif user_action.startswith('complete'):
+        try:
+            parts = user_action.split()
+            if len(parts) == 2 and parts[1].isdigit():
+                task_num = int(parts[1])
+                tasks = read_file()
+
+                if not tasks:
+                    print("No tasks to complete.")
+                    continue
+
+                if 1 <= task_num <= len(tasks):
+                    removed = tasks.pop(task_num - 1)
+                    write_file(tasks)
+                    print(f'Task {task_num} "{removed.strip()}" marked as done and removed.')
+                else:
+                    print("Invalid task number.")
+            else:
+                print("Usage: complete <task number>")
+
+        except Exception as e:
+            print(f"Error completing task: {e}")
 
         prompt = "Command: "
 
     elif 'clear' in user_action:
-        with open('task.txt', 'w'):
-            pass
+        write_file([])
         print("All tasks cleared.")
-
         prompt = "Command: "
 
     elif 'help' in user_action:
         print("Hi, these are some useful commands:")
-        print("1. add - Adds a task.")
-        print("2. show/display - Shows all tasks.")
-        print("3. edit - Helps edit a task.")
-        print("4. complete - Marks a task as done and removes it.")
-        print("5. clear - Removes all the tasks.")
-        print("6. exit - Exits the program.")
-        print("7. help - Shows this help menu.")
-
+        print("1. add <task description>  - Adds a task (e.g., add clean room)")
+        print("2. show / display           - Shows all tasks.")
+        print("3. edit <task number>       - Edits a specific task (e.g., edit 2).")
+        print("4. complete <task number>   - Marks a task as done and removes it (e.g., complete 1).")
+        print("5. clear                    - Removes all the tasks.")
+        print("6. exit                     - Exits the program.")
+        print("7. help                     - Shows this help menu.")
         prompt = "Command: "
 
     elif 'exit' in user_action:
