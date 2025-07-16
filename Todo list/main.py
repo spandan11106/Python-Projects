@@ -1,14 +1,4 @@
-def read_file():
-    try:
-        with open('task.txt', 'r') as txt:
-            return txt.readlines()
-    except FileNotFoundError:
-        return []
-
-def write_file(tasks):
-    with open('task.txt', 'w') as file:
-        file.writelines(tasks)
-
+from functions import read_file, write_file
 
 prompt = "Command (help - for cmd info) : "
 
